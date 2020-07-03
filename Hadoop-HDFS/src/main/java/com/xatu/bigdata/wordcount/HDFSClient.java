@@ -1,4 +1,4 @@
-package com.xatu.bigdata;
+package com.xatu.bigdata.wordcount;
 
 
 import org.apache.hadoop.conf.Configuration;
