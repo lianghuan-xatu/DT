@@ -41,6 +41,7 @@ public class CallBackProducer
                                          Exception exception) {
                     if (exception == null) {
                         System.out.println("success->" +
+
                                 metadata.offset());
                     } else {
                         exception.printStackTrace();
