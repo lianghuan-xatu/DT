@@ -235,7 +235,7 @@ public class HBaseDao
         //构建Scan对象
         Scan scan = new Scan();
         //构建过滤器
-        new RowFilter()
+        new RowFilter();
         //获取数据
         ResultScanner scanner = contentTable.getScanner(scan);
         //解析数据打印
