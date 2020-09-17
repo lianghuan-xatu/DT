@@ -1,3 +1,5 @@
+
+
 import scala.io.StdIn
 import scala.util.control.Breaks
 
@@ -125,7 +127,7 @@ object TestScala {
 
 
 
-  
+
   /**
    * 函数式编程
    *
@@ -175,6 +177,53 @@ object TestScala {
   def test3( name : String, age : Int = 30 ): Unit = {
     println(s"$name, $age")
   }
+
+
+
+  import scala.collection.mutable.ArrayBuffer
+  val arr1 =  Array[Int](3)
+  val array2 =  ArrayBuffer[String]("hj","hj","j")
+  val array = ArrayBuffer[Any]()
+  for (elem <- arr1) {
+    println(elem)
+  }
+  for(index <- 0 until arr1.length) {
+    println(arr1(index))
+  }
+  //（3.1）追加数据
+  array.+=(4)
+  //（3.2）向数组最后追加数据
+  array.append(5,6)
+  //（3.3）向指定的位置插入数据
+  array.insert(0,7,8)
+  println("arr01.hash=" + array.hashCode())
+
+  val array3 = Array.ofDim[Double](2,3)
+
+  array3(1)(2) = 88
+
+  /**
+   * Scala ArrayBuffer 转 Java ArrayList
+   * implicit def bufferAsJavaList[A](b : scala.collection.mutable.Buffer[A]) : java.util.List[A] = { /* compiled code */ }
+   * 引入隐式函数，通过调用Java方法进行触发
+   */
+  import scala.collection.JavaConversions.bufferAsJavaList
+  val javaArray = new ProcessBuilder(array2)
+  val arrayList = javaArray.command()
+
+
+  /**
+   * Java arraysList 转 Scala Buffer
+   * implicit def asScalaBuffer[A](l : java.util.List[A]) : scala.collection.mutable.Buffer[A] = { /* compiled code */ }
+   * 隐式函数在赋值时候触发
+   *
+   */
+  import scala.collection.JavaConversions.asScalaBuffer
+  import scala.collection.mutable
+
+  val scalaArray: mutable.Buffer[String] = arrayList
+
+
 
 
 
