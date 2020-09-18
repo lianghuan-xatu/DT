@@ -1,5 +1,6 @@
 
 
+import scala.collection.mutable.ListBuffer
 import scala.io.StdIn
 import scala.util.control.Breaks
 
@@ -223,9 +224,188 @@ object TestScala {
 
   val scalaArray: mutable.Buffer[String] = arrayList
 
+  /**
+   * 多个无关的数据类型进行的组合为元组
+   * 元组中最大最多22个元素   可以进行Tuple的嵌套放入达到无限循环的效果
+   */
+  //为了高效的操作元组 编译器根据元素个数的不同  对应不同的元组类型
+  val tuple3 = (0,1,"scala")
+  //访问元组
+  val ele1 = tuple3._1
+  /**
+   * override def productArity : scala.Int = { /* compiled code */ }
+   * @scala.throws[scala.IndexOutOfBoundsException](classOf[scala.IndexOutOfBoundsException])
+   * override def productElement(n : scala.Int) : scala.Any = { /* compiled code */ }
+   * def _1 : T1
+   * def _2 : T2
+   * def _3 : T3
+   * }
+   */
+  val ele2 = tuple3.productElement(1)
+  //遍历元组
+  for(item <- tuple3.productIterator) {
+    /**
+     * 元组的遍历需要迭代器
+     */
+    println(item)
+  }
+
+  /**
+   * List
+   */
+  import scala.collection.immutable.List
+  val list = List[Any](2,"scala")
+  val list2 = Nil   //空集合
+  println(list(1)) //打印第二个元素
+  //元素追加
+  val list3 = list2 :+ 4
+  println(list3) //底层实现list2数据拷贝再追加元素   list2还是不变的
+  val list4 = 10 +: list3
+  /**
+   * :: 符号说明
+   * 集合运算
+   */
+  val list5 = 4 :: 5 :: list3 :: Nil  //集合对象一定要放在最右边 运算规则从右向左
+  /**
+   * ::: 将集合中每一个元素放到集合中
+   */
+  val list6 = 5 :: 7 :: list3 ::: Nil // :::表示将符号左边的集合数据分散开逐个放入符号右边的集合
+
+  /**
+   * ListBuffer
+   */
+  val lb = ListBuffer[Int](2,5,8)
+  for (elem <- lb) {
+    //遍历是有序的
+    println(elem)
+  }
+  println(lb(2))
+  println(lb.append(2))
+  lb += 2
+  val lb2 = ListBuffer[Int](2,5,6)
+  lb ++= lb2   //将lb2打散放入lb
+  val lb3 = lb ++ lb2
+  val lb4 = lb2 :+ 4
+  lb.remove(2)
+
+  /**
+   * 队列Queue
+   */
+  import scala.collection.mutable.Queue
+  val queue = new Queue[Int]
+  queue ++= List(2,5,6)  //集合中的元素逐个加入
+  val queue2 = new Queue[Any]
+  queue2 += 2
+  queue2 += List(2,4,5)     //将List直接加入队列   所以Queue的通配符为Any
+  val element = queue2.dequeue()
+  queue2.enqueue(2,3,5)
+  println(queue2.head)
+  println(queue2.last) //最后一个元素
+  println(queue2.tail.tail.tail)  //队尾元素 可递归
 
 
+  /**
+   * 可变和不可变Map 默认Map为immutable下的Map
+   * 通过tuple实现 每一对key value是Tuple2
+   * 不可变的Map是有序的   可变的Map是无序的
+   *
+   */
+  val map = Map("frank" -> 2,"jack" -> 3)
+  //创建可变映射
+  val map2 = scala.collection.mutable.Map("frank" -> 2,"jack" -> 3)
+  //对偶元组
+  val map3 = collection.mutable.Map(("frank",2),("mary",3))
+  /**
+   * 取值 key存在  返回对应的值  不存在直接抛出异常
+   */
+  println(map2("frank"))
+  //所以先判断key是否存在
+  if(map2.contains("frank")) {
+    val element = map2("frank")
+  } else {
+    println("数据不存在")
+  }
+  //使用map.get(key).key获取
+  //如果存在直接返回结果 ap.get(key)返回SOME再get取值 否则返回None
+  val result = map.get("frank").get
+  //使用getOrElse取值
+  map2.getOrElse("frank",3)  //第一个参数为key   第二个参数为默认参数
 
+  val map4 =mutable.Map("scala" -> 2,"python" -> 3)
+  //增加单个元素
+  map4 += ("java" -> 5)
+  println(map4)
+  //增加多个元素      如果key存在就是更新   不存在就是添加
+  val map5 = map2 + map3
+  println(map5)
+  val map6 = map3 + ("c" -> 2)
+  println(map6)
+  map3 += ("golang" -> 6)
+  //删除
+  map3 -=("golang","java")
+  map3.remove("golang")
+  //map的遍历
+  for((k,v) <- map) {
+    println(k,v)
+  }
+  for(v <- map.keys) {
+    println(v)
+  }
+  for(v <- map.values) {
+    println(v)
+  }
+  for(v <- map) {
+    //取出的值类型为Tuple2
+    println(v+"key:"+v._1+"value"+v._2)
+  }
+  /**
+   * Set集合
+   */
+  //不可变
+  val set1 = Set(2,3,"scala")
+  //可变
+  val set2 = mutable.Set(2,4)
+  /**
+   * 高阶函数
+   */
+  def function0 (f: Double => Double,n1: Double) = {
+    //函数function0第一个参数为函数f传入Double类型返回Double类型
+    f(n1)
+  }
+
+  /**
+   * map函数映射
+   * 将list中的元素逐个遍历然后通过multiple函数返回Int类型的数据
+   * 再将返回的数据再逐个加入到集合中去
+   */
+  val list7 = List(2,4,5)
+  val list2 = list7.map(multiple)
+
+  def multiple(n: Int): Int = {
+    println("multiple被调用")
+    2*n
+  }
+
+  /**
+   * flatmap扁平化映射
+   * 将list集合中所有子元素进行扁平化操作  意思为子元素如果为集合将继续不断的拆分
+   */
+  val names = List("frank","zachary","mary")
+  println(names.flatMap(uper))
+  //每个字符都算Char集合
+  def uper(s: String ): String = {
+    s.toUpperCase
+  }
+
+  /**
+   * 过滤器
+   */
+  val names2 = List("frank","mary","lisa")
+  val names3 = names.filter(startA) //names2还是不变的    结果用names3来接收
+  //过滤器参数为一个接受String类型返回Boolean类型的函数
+  def startA(s: String): Boolean = {
+    s.startsWith("A")
+  }
 
 
 
