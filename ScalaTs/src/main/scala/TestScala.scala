@@ -250,15 +250,15 @@ object TestScala {
     println(item)
   }
 
-  /**
+  /**22
    * List
    */
   import scala.collection.immutable.List
   val list = List[Any](2,"scala")
-  val list2 = Nil   //空集合
+  val list22 = Nil   //空集合
   println(list(1)) //打印第二个元素
   //元素追加
-  val list3 = list2 :+ 4
+  val list3 = list22 :+ 4
   println(list3) //底层实现list2数据拷贝再追加元素   list2还是不变的
   val list4 = 10 +: list3
   /**
@@ -327,7 +327,7 @@ object TestScala {
   }
   //使用map.get(key).key获取
   //如果存在直接返回结果 ap.get(key)返回SOME再get取值 否则返回None
-  val result = map.get("frank").get
+  var result = map.get("frank").get
   //使用getOrElse取值
   map2.getOrElse("frank",3)  //第一个参数为key   第二个参数为默认参数
 
@@ -336,8 +336,8 @@ object TestScala {
   map4 += ("java" -> 5)
   println(map4)
   //增加多个元素      如果key存在就是更新   不存在就是添加
-  val map5 = map2 + map3
-  println(map5)
+  //val map5 = map2 + map3
+  //println(map5)
   val map6 = map3 + ("c" -> 2)
   println(map6)
   map3 += ("golang" -> 6)
@@ -407,8 +407,274 @@ object TestScala {
     s.startsWith("A")
   }
 
+  /**
+   * 集合化简
+   * reduceLeft从左往右依次用左右函数元素
+   * 将返回结果与第三个元素继续作为函数参数 循环执行
+   * reduceRight与此相反
+   */
+  val list9 = List(1,2,3,4,5,9)
+  val result9 = list9.reduceRight(_ + _)
+  list9.reduceRight(min5)
+
+  def min5(n1: Int,n2: Int): Int = {
+    if (n1 > n2) n2 else n1
+  }
+
+  /**
+   * 折叠和化简几乎相同
+   */
+  val list8 = List(1,2,3,4,5,9)
+  val result8 = list8.foldRight(5)(_ + _)
+  list9.foldRight(5)(min)
+
+  def min(n1: Int,n2: Int): Int = {
+    if (n1 > n2) n2 else n1
+  }
+  //等价于    把5作为第一个元素  执行reduceLeft
+  /**
+   * 折叠的简写
+   */
+  val list11 = (1 /: list8)(min2)  //等价于 1左折叠
+  def min2(n1: Int,n2: Int): Int = {
+    if (n1 > n2) n2 else n1
+  }
+  val list13 = List(2,5,7)
+  val list12 = (list13 :\ 8)(min3)  //注意list方向   list在哪边：在哪边
+  def min3(n1: Int,n2: Int): Int = {
+    if (n1 > n2) n2 else n1
+  }
+
+  /**
+   * 扫描：
+   * 即对集合中的每一个元素进行fold操作对产生的所有中间结果重新放入一个集合中
+   */
+  val i9 = (1 to 5).scanRight(5)(sum)  //结果为20,19,1714,10,5
+  def sum(n1: Int,n2: Int): Int = {
+    n1 + n2
+  }
+
+  /**
+   * 案例：使用fold来进行序列字母统计
+   */
+  val sentence = "ABBBBBCCCKJKK"
+  //创建一个参数作为左折叠的第一个参数
+  val countMap = mutable.Map[Char,Int]()
+  sentence.foldLeft(countMap)(charCount)
+  def charCount(map: mutable.Map[Char,Int],char: Char): mutable.Map[Char,Int] = {
+    map += (char -> (map.getOrElse(char,0) + 1))
+  }
+
+  /**
+   * 拉链
+   * 1，2，3
+   * 4，5，6
+   * （1，4），（2，5），（3，6）
+   */
+  val listx = List(1,2,3)
+  val listy = List(4,5,6)
+  val listm = listx.zip(listy)   //合并后每一个元素都是对偶元组
+  //遍历
+  for(item <- listm) {
+    println("x:"+item._1 + "||" + "y:"+item._2)
+  }
+  /**
+   * 迭代器
+   *
+   */
+  val iterator = List(2,6,8).iterator
+  while (iterator.hasNext) {
+    println(iterator.next())
+  }
+
+  for(enum <- iterator) {
+    println(enum)
+  }
+
+  /**
+   * Stream 流
+   */
+  def numsForm(n: BigInt) :Stream[BigInt] = n #:: numsForm(n * 2)
+  val stream = numsForm(2)
+
+  /**
+   * Stream[BigInt]指定流数据类型
+   *  def numsForm用函数指定数据生成规则  第一个元素是 n 规则为n * 2
+   */
+
+  /**
+   * View  实现普通集合lazy懒加载
+   */
+  def eq(i: Int): Boolean = {
+    i.toString.equals(i.toString.reverse)
+  }
+  val listT = List(2,3,5,88,99).view.filter(eq)
+
+  /**
+   * 并行集合
+   */
+  (1 to 20).par.foreach(println(_))
+  val listM = List(2,4,6)
+  listM.par.foreach(
+    println(_)  //输出的结果是无序的说明任务是分配给多个cpu执行的
+  )
+
+  /**
+   *
+   * 模式匹配  和Java中的switch case类似
+   * 模式匹配会将匹配到的代码块中的最后一句作为返回值返回
+   */
+  val oper = '#'
+  val n1 = 10
+  val n2 = 11
+  val result2 = 0
+
+  oper match {
+    case '+' => {result = n1 + n2}
+    case '-' => result = n1 - n2
+    case _ => println("error")
+  }
+  println(result)
+  /**
+   * 模式匹配条件守卫
+   */
+  val str = "asdsadas"
+  for(s <- str) {
+    s match {
+      case 'a' => {
+        if(s > 0) {//条件守卫
+        println(s)
+    }
+    }
+      case 'b' => {
+        println(s)
+    }
+      case _ => println("error")
+    }
+  }
+  /**
+   * 模式中的变量
+   */
+  val str2 = "asdsadas"
+  for(s <- str2) {
+    s match {
+      case 'a' => {
+        if(s > 0) {//条件守卫
+          println(s)
+        }
+      }
+      case 'b' => {
+        println(s)
+      }
+      case myChar =>{
+        //会将s直接赋值给myChar     无条件的匹配
+        println(myChar)
+      }
+      case _ => println("error")
+    }
+  }
+  /**
+   * 模式匹配之类型匹配
+   */
+  val a = 5
+  val obj =  if(a == 1) List(2,4)
+  else if(a ==2) Map(("frank",1),("luck",2))
+  else Array("aa",2)
+  //类型匹配  只有在类型匹配的时候才会赋值然后执行代码块
+  obj match {
+    case a: Map[String,Int] => println(a)
+    case b: Array[Any] => println(b)
+  }
+
+  /**
+   * 匹配数组
+   */
+  val array0 = Array(Array(0,1),Array(1,8),Array(1,3,5))
+  for (array <- array0) {
+    array match {
+      case Array(x,y) => println(x,y)   //匹配数组中两个不同的元素
+      case Array(0,1) => println("")
+      case Array(0,_*) => println("")  //以0为开头的数组
+      case  _ => println("error")
+    }
+  }
+  /**
+   * 匹配列表
+   */
+  for (list <- Array(List(1, 0), List(1, 0, 2), List(4, 0))) {
+    list match {
+      case 0 :: Nil => println() //以0开始的列表
+      case x :: y :: Nil => println()  //x y占位的列表
+      case 0 :: tail => println()
+      case  _ => println()
+    }
+  }
+  /**
+   * 匹配元组
+   */
+  for (pa <- Array((1, 0), (0, 2),(4, 0))) {
+    pa match {
+      case (0,x) => println() //以0开始的元组
+      case (x,y) => println()  //x y占位的元组
+      case () => println()
+      case  _ => println()
+    }
+  }
+  /*
+  Object Square {
+    //unapply是对象提取器
+    //接收Double类型  返回Option类型  返回具体值是math.sqrt(z)并放入Some集合中
+    def unapply(z: Double): Option[Double] = Some(math.sqrt(z))
+    def apply(z: Double): Double = z*z
+  }
+  val number: Double = 36.  0
+  //match 到case Square之后 调用 unapply（z:Double）然后z的值就是
+  number match {
+    case Square(n) => println(n)
+    case _ => println("nothing matched")
+  }
 
 
+*/
+/*
+  Object Names {
+    //当构造器为多个参数是就会触发此方法   unapply
+    def unapply(str: String): Option[Seq[String]] = {
+        if(str.contains(",")) Some(str.split(","))
+        else None
+    }
+  }*/
+  /**
+   * 变量声明中模式使用
+   */
+  val (x,y,z) = (1,2,"hello")
+  val (q,r) = BigInt(10) /% 2   // q=BigInt(10)/2  r=BigInt(10)%2
+  val arr = Array(1,2,4,6)
+  val Array(first,second,_) =arr
+  println(first,second)
+
+  /**
+   * for循环中的模式
+   */
+  val map11 = Map("frank"->2,"tom"->3)
+  for ((x,y) <- map11) {
+    println(x,y)
+  }
+  for ((x,0) <- map11) {
+    println(x,0)
+  }
+  for ((x,y) <- map11 if y == 0) {
+    println(x,0)
+  }
+  for (("tom",y) <- map11) {
+    println("tom",y)
+  }
+
+  /**
+   * 样例类 为模式匹配而优化的类
+   */
+  abstract class Amount
+  case class Dollar
 
 
 }
