@@ -1,5 +1,8 @@
 
 
+import org.omg.CosNaming.NamingContextExtPackage.StringNameHelper
+import sun.nio.cs.ext.DoubleByteEncoder
+
 import scala.collection.mutable.ListBuffer
 import scala.io.StdIn
 import scala.util.control.Breaks
@@ -647,7 +650,7 @@ object TestScala {
   /**
    * 变量声明中模式使用
    */
-  val (x,y,z) = (1,2,"hello")
+  var (x, y, z) = (1, 2, "hello")
   val (q,r) = BigInt(10) /% 2   // q=BigInt(10)/2  r=BigInt(10)%2
   val arr = Array(1,2,4,6)
   val Array(first,second,_) =arr
@@ -671,10 +674,225 @@ object TestScala {
   }
 
   /**
-   * 样例类 为模式匹配而优化的类
+   * 样例类 为模式匹配而优化的类  为了模式匹配的简洁性
    */
   abstract class Amount
-  case class Dollar
+  case class Dollar(value: Double) extends Amount
+  case class Currency(value: Double,unit: String) extends Amount
+  case object NoAmount extends Amount //样例类
+
+  for(amt <- Array(Dollar(200.00),Currency(200.00,"frnak"),NoAmount)) {
+    amt match {
+      case Dollar(v) => println(v)
+      case Currency(x,y) => println(x,y)
+      case NoAmount => println("NoAmount")
+    }
+  }
+  /**
+   * 样例类的copy方法   复制一个一模一样类 参数默认可省略
+   */
+  val amt2 = Currency(4.00,"frank")
+  val amt3 = amt2.copy() //创建和amt2属性一样的类
+  val amt4 = amt2.copy(value = 3.8)   //属性值修改
+  val amt5 = amt2.copy(unit = "jack")
+
+
+  /**
+   * 批配嵌套结构
+   */
+  abstract class Item //项
+  case class Book(description: String,price: Double) extends Item
+  case class Bundle(description: String,discount: Double,item: Item*) extends Item
+
+  val sale = Bundle("书籍",10,Book("漫画",40),Bundle("文学作品",20,Book("阳关",20),Book("围城",40)))
+
+  //使用case获取到漫画
+  val result5 = sale match {
+    case Bundle(_,_,Book(desc,_),_,_*) => println(desc)
+  }
+  println(result5)
+  //通过@表示法将嵌套的值绑定在变量  _*绑定剩余item到rest
+  val result6 = sale match {    //_*表示所有   _表示忽略即可
+    case Bundle(_,_,art @ Book(_,_), rest @_*) => println(art,rest)
+  }
+  // _*表示所有   _表示忽略即可
+  val result7 = sale match {    //_*表示所有   _表示忽略即可
+    case Bundle(_,_,art @ Book(_,_),rest) => println(art,rest)
+  }
+
+  /**
+   * 案例完成
+   */
+  def price(item: Item): Double = {
+    item match {
+    case Book (_, price) => price
+    case Bundle(_,disc,its @ _*) => its.map(price).sum - disc
+
+  }
+  }
+
+  /**
+   * 密封类   只能在当前文件源继承使用   其他地方无法使用
+   */
+  abstract sealed class Item2 //项
+  case class Book2(description: String,price: Double) extends Item
+  case class Bundle2(description: String,discount: Double,item: Item*) extends Item
+
+
+  /**
+   * 偏函数
+   * Any为偏函数的输入值类型，Int为偏函数的输出值类型
+   * isDefinedAt方法返回值为true则调用apply方法创建对象实例，否则直接过滤
+   * apply构造器 对传入的值加1然后返回（新的集合）
+   */
+  val patrtialFun = new PartialFunction[Any,Int] {
+    override def isDefinedAt(x: Any): Boolean = x.isInstanceOf[Int]
+
+    override def apply(v1: Any): Int = v1.asInstanceOf[Int] + 1
+
+  }
+  /**
+   * 偏函数的使用
+   * 如果是偏函数 则不能使用map因该使用collect
+   *
+   */
+  List(1,2,3,"frank").collect(patrtialFun)
+
+  /**
+   * 偏函数的简化 1
+   */
+  def patrtialFun2: PartialFunction[Any,Int] = {
+    case x: Int => x + 1
+  }
+  /**
+   * 偏函数的简化 2
+   */
+  List(1,2,3,"frank").collect{ case x: Int => x + 1}
+
+  /**
+   * 作为参数的函数
+   * 在scala中函数也是有类型的
+   * 一个参数的函数类型为function1
+   * 二个参数的函数类型为function2
+   *
+   */
+  def tranlate(x: Int): Double = {
+    x.toDouble
+  }
+  List(2,5,7).map(tranlate(_))  //_代表从集合中遍历的每一个元素
+
+  /**
+   * 匿名函数
+   */
+  val triple = (x: Double) => 3 * x
+  //匿名函数等于形参加函数体
+  //匿名函数返回值类型通过类型推导
+  //如果函数体有多行则使用大括号包裹
+
+  /**
+   * 高阶函数
+   * 能够接受函数作为参数的函数称为高阶函数
+   */
+  def sum22(n2: Double): Double = {
+    n2 + n2
+  }
+  def test(f:Double => Double,n3: Double) = {
+    f(n3)
+  }
+  val rest6 = test(sum22 _,3.0)
+
+
+  /**
+   * 函数minusxy返回匿名函数
+   * 可以接收返回的函数
+   */
+  def minusxy(x: Int) = {
+    (y: Int) => x - y
+  }
+
+  val fun01 = minusxy(2)  //fun01 = (y: Int) => 2 - y
+  val fun02 = minusxy(2)(3)   //(y: Int) => 2 - y   再传入3
+
+  /**
+   * 闭包就是一个函数与它引用环境所构成的整体
+   */
+  def minusxy2(x: Int) = {
+    (y: Int) => x - y
+  }
+  //minusxy2函数与外部的变量x整体构成闭包
+  //通过闭包我们不用每次都将suffix传入函数
+  def exmp(suffix: String) = {
+    (fileName: String) => {
+        if(fileName.contains(suffix)) fileName
+        else fileName + suffix
+    }
+  }
+
+  /**
+   * 函数的柯里化 ： 多个参数的函数可以转换成一个参数的函数
+   */
+  def sumN(n1: Int)(n2: Int) = n1 * n2
+
+  /**
+   * 体现了比较字符串的过程被分解成两个步骤
+   * checkEQ完成小写转换
+   * f函数完成比较
+   * @param s
+   */
+  implicit class Test(s: String) {
+    def checkEQ(ss: String)(f:(String,String) => Boolean): Boolean ={
+      f(s.toLowerCase,ss.toLowerCase)
+    }
+  }
+
+  /**
+   * 抽象控制
+   */
+  def myRunThread(f1:() => Unit ) = {
+    new Thread {
+      override def run(): Unit = {
+        f1()
+      }
+    }.start()
+  }
+  myRunThread(() => {
+    println("开始干活")
+    Thread.sleep(5000)
+    println("over")
+  })
+  /**
+   * 对于没有输入也没有输出的函数可以简写
+   */
+  def myRunThread {
+    println("开始干活")
+    Thread.sleep(5000)
+    println("over")
+  }
+
+  /**
+   * 通过控制抽象来理解while循环底层原理
+   */
+  def util(condition: => Boolean)(code: => Unit): Unit = {
+    if(condition) {
+      code
+    }
+  }
+  var x1 = 10
+  util(x1 >0){
+    //无输入输出的代码块
+    x1 -= 1
+    println("lalalala")
+  }
+
+
+
+
+
+
+
+
+
+
 
 
 }
