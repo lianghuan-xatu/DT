@@ -885,6 +885,26 @@ object TestScala {
   }
 
 
+  /**
+   * WordCount案例
+   */
+  val lines = List("an bn cn un","mn fv dc cd")
+  // lines.flatMap((s: String) => s.split(""))
+  val resut1 = lines.flatMap(_.split(""))
+  //做成对偶才能分组统计
+  //resut1.map((x: String) => (x,1))
+  val resut2 = resut1.map((_,1))
+  //按照字符串分组
+  val result3 = resut2.groupBy((t:(String,Int)) => t._1)
+  //对上面元组进行分组统计
+  //result3.map((x:(String,List[(String,Int)])) => (x._1,x._2.size))
+  val result4 = result3.map(x => (x._1,x._2.size))
+  //排序
+  //result4.toList.sortBy((x:(String,Int)) => x._2)
+  result4.toList.sortBy(_._2).reverse
+
+
+
 
 
 
