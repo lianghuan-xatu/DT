@@ -891,7 +891,7 @@ object TestScala {
   val lines = List("an bn cn un","mn fv dc cd")
   // lines.flatMap((s: String) => s.split(""))
 
-  
+
   val resut1 = lines.flatMap(_.split(""))
   //做成对偶才能分组统计
   //resut1.map((x: String) => (x,1))
@@ -905,6 +905,7 @@ object TestScala {
 
   //排序
   //result4.toList.sortBy((x:(String,Int)) => x._2)
+
   result4.toList.sortBy(_._2).reverse
 
 
