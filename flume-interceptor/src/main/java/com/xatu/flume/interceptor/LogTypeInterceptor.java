@@ -32,7 +32,6 @@ public class LogTypeInterceptor implements Interceptor {
         }else {
             headers.put("topic","topic_event");
         }
-
         return event;
     }
 
